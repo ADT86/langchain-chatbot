@@ -1,0 +1,6 @@
+# OpenAI API Configuration
+# Get your API key from: https://platform.openai.com/api-keys
+OPENAI_API_KEY="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"
+
+# Optional: Set a different model (default is gpt-3.5-turbo)
+# OPENAI_MODEL=gpt-4 
