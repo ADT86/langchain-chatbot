@@ -15,7 +15,12 @@ from langchain.memory import ConversationBufferMemory
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+try:
+    load_dotenv()
+    print("🔧 Environment variables loaded from .env file")
+except Exception as e:
+    print(f"⚠️  Warning: Could not load .env file: {e}")
+    print("   The script will still work if OPENAI_API_KEY is set as an environment variable")
 
 def load_pdf(file_path):
     """Load and process PDF file"""
@@ -93,10 +98,30 @@ def main():
         sys.exit(1)
     
     # Check if OpenAI API key is set
-    if not os.getenv("OPENAI_API_KEY"):
-        print("❌ Please set your OpenAI API key in the .env file or environment variables.")
-        print("Create a .env file with: OPENAI_API_KEY=your_api_key_here")
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        print("❌ OpenAI API key not found!")
+        print("Please ensure your API key is set in one of these ways:")
+        print("1. Create a .env file in this directory with: OPENAI_API_KEY=your_api_key_here")
+        print("2. Set it as an environment variable: export OPENAI_API_KEY=your_api_key_here")
+        print("3. Check if the .env file exists and contains the correct key")
+        
+        # Check if .env file exists
+        env_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+        if os.path.exists(env_file):
+            print(f"📁 Found .env file at: {env_file}")
+            print("   Make sure it contains: OPENAI_API_KEY=your_api_key_here")
+        else:
+            print(f"📁 No .env file found at: {env_file}")
+            print("   You can copy env_example.txt to .env and update it with your API key")
         sys.exit(1)
+    
+    # Validate API key format (basic check)
+    if not api_key.startswith('sk-'):
+        print("⚠️  Warning: OpenAI API key should start with 'sk-'")
+        print("   Please verify your API key is correct")
+    
+    print(f"✅ OpenAI API key loaded (ends with: ...{api_key[-4:]})")
     
     print("=" * 50)
     print("📚 PDF Chatbot - Command Line Interface")
