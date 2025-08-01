@@ -62,6 +62,42 @@ Example:
 python cli_chatbot.py research_paper.pdf
 ```
 
+## Deployment Options
+
+### Option 1: Streamlit Cloud (Recommended)
+
+1. **Deploy to Streamlit Cloud**:
+   - Fork this repository to your GitHub account
+   - Go to [share.streamlit.io](https://share.streamlit.io)
+   - Connect your GitHub account and select this repository
+   - Set the main file as `pdf_chatbot.py`
+
+2. **Add your API key to Streamlit Secrets**:
+   - In your Streamlit Cloud app dashboard, go to Settings → Secrets
+   - Add your OpenAI API key:
+   ```toml
+   OPENAI_API_KEY = "your_actual_api_key_here"
+   ```
+
+### Option 2: GitHub Codespaces
+
+1. **Open in Codespaces**:
+   - Click the "Code" button on GitHub → "Codespaces" → "Create codespace"
+   - The environment will be set up automatically
+
+2. **Set GitHub Secrets** (for the repository):
+   - Go to Settings → Secrets and variables → Actions
+   - Add `OPENAI_API_KEY` as a repository secret
+
+3. **Run the app**:
+   ```bash
+   streamlit run pdf_chatbot.py
+   ```
+
+### Option 3: Local Development
+
+Follow the installation instructions above and run locally.
+
 ## How It Works
 
 1. **PDF Loading**: The chatbot uses PyPDF to extract text from your PDF

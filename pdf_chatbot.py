@@ -8,8 +8,20 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables (for local development)
 load_dotenv()
+
+def get_openai_api_key():
+    """Get OpenAI API key from Streamlit secrets or environment variables"""
+    # Try Streamlit secrets first (for deployed apps)
+    try:
+        if hasattr(st, 'secrets') and 'OPENAI_API_KEY' in st.secrets:
+            return st.secrets['OPENAI_API_KEY']
+    except:
+        pass
+    
+    # Fall back to environment variables (for local development)
+    return os.getenv("OPENAI_API_KEY")
 
 def load_pdf(file_path):
     """Load and process PDF file"""
@@ -34,7 +46,9 @@ def load_pdf(file_path):
 def create_vectorstore(chunks):
     """Create vector store from document chunks"""
     try:
-        embeddings = OpenAIEmbeddings()
+        # Use the unified API key function
+        api_key = get_openai_api_key()
+        embeddings = OpenAIEmbeddings(openai_api_key=api_key)
         vectorstore = FAISS.from_documents(chunks, embeddings)
         return vectorstore
     except Exception as e:
@@ -44,9 +58,12 @@ def create_vectorstore(chunks):
 def create_conversation_chain(vectorstore):
     """Create conversation chain with memory"""
     try:
+        # Use the unified API key function
+        api_key = get_openai_api_key()
         llm = ChatOpenAI(
             model_name="gpt-3.5-turbo",
-            temperature=0.7
+            temperature=0.7,
+            openai_api_key=api_key
         )
         
         memory = ConversationBufferMemory(
@@ -78,10 +95,29 @@ def main():
     st.markdown("Upload a PDF file and ask questions about its content!")
     
     # Check if OpenAI API key is set
-    if not os.getenv("OPENAI_API_KEY"):
-        st.error("⚠️ Please set your OpenAI API key in the .env file or environment variables.")
-        st.info("Create a .env file with: OPENAI_API_KEY=your_api_key_here")
+    api_key = get_openai_api_key()
+    if not api_key:
+        st.error("⚠️ OpenAI API key not found!")
+        st.info("Please set your OpenAI API key in one of these ways:")
+        st.markdown("""
+        **For local development:**
+        - Create a `.env` file with: `OPENAI_API_KEY=your_api_key_here`
+        
+        **For Streamlit Cloud deployment:**
+        - Go to your app settings → Secrets
+        - Add: `OPENAI_API_KEY = "your_api_key_here"`
+        
+        **For GitHub Actions/Codespaces:**
+        - Set as repository secret: `OPENAI_API_KEY`
+        - Or set as environment variable
+        """)
         return
+    
+    # Validate API key format
+    if not api_key.startswith('sk-'):
+        st.warning("⚠️ Warning: OpenAI API key should start with 'sk-'")
+    else:
+        st.success(f"✅ OpenAI API key loaded (ends with: ...{api_key[-4:]})")
     
     # File upload
     uploaded_file = st.file_uploader(
